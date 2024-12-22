@@ -7,6 +7,9 @@ import string
 from urllib.parse import unquote, urlparse
 import csv
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Function to convert a number to Base62 (shortened ID)
 def to_base62(num):
@@ -25,7 +28,9 @@ def generate_short_id():
     return to_base62(uuid_int)[:8]  # Shorten to the first 8 characters
 
 # Set up Google Gemini API
-genai.configure(api_key="AIzaSyBEfuoZbcieg3a7JnzE0LSgiLfmeIBg8q0")  # Ensure API key is set in your environment
+api_key_1 = os.getenv('GOOGLE_API_KEY_1')
+api_key_2 = os.getenv('GOOGLE_API_KEY_2')
+genai.configure(api_key=api_key_1)  # Ensure API key is set in your environment
 
 def get_website_info(website_url, soup):
     try:

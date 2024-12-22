@@ -10,7 +10,7 @@ import os
 import csv  # Added import for csv
 
 # Set up Google Gemini API
-genai.configure(api_key="AIzaSyAs3_dAYF7KMlWJrpdyC9TbXMwsu73A_bg")
+genai.configure(api_key_3 = os.getenv('GOOGLE_API_KEY_2'))
 
 def to_base62(num):
     base62_chars = string.ascii_letters + string.digits  # A-Z, a-z, 0-9

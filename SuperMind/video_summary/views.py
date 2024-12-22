@@ -37,7 +37,7 @@ def generate_short_id():
     return to_base62(uuid_int)[:8]  # Shorten to the first 8 characters
 
 # Set up Google Gemini API
-genai.configure(api_key_3 = os.getenv('GOOGLE_API_KEY_3'))
+genai.configure(api_key=os.getenv('GOOGLE_API_KEY_3'))
 
 # Set up YouTube Data API
 YOUTUBE_API_KEY = "AIzaSyCMAy4vjJ4nfGcKy-99WMoK5jwAmJswLVA"

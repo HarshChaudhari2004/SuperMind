@@ -2,15 +2,12 @@
 from django.shortcuts import render
 from django.http import HttpResponse
 from datetime import datetime  # Add this import at the top
-import os
-from dotenv import load_dotenv
-
-load_dotenv()
 
 # Create a simple home view for the root URL
 def home(request):
     return HttpResponse("Welcome to SuperMind! Use /api/generate-summary to interact with the API.")
 
+import os
 import requests
 import google.generativeai as genai
 from youtube_transcript_api import YouTubeTranscriptApi, NoTranscriptFound
@@ -37,13 +34,11 @@ def generate_short_id():
     return to_base62(uuid_int)[:8]  # Shorten to the first 8 characters
 
 # Set up Google Gemini API
-genai.configure(api_key=os.getenv('GOOGLE_API_KEY_3'))
+genai.configure(api_key = "AIzaSyAs3_dAYF7KMlWJrpdyC9TbXMwsu73A_bg")
 
 # Set up YouTube Data API
 YOUTUBE_API_KEY = "AIzaSyCMAy4vjJ4nfGcKy-99WMoK5jwAmJswLVA"
 YOUTUBE_API_URL = "https://www.googleapis.com/youtube/v3/"
-
-api_key_3 = os.getenv('GOOGLE_API_KEY_3')
 
 # Fetch YouTube video details function
 def fetch_youtube_details(video_id):

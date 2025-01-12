@@ -37,7 +37,6 @@ def generate_short_id():
     return to_base62(uuid_int)[:8]  # Shorten to the first 8 characters
 
 # Set up Google Gemini API
-#genai.configure(api_key = "AIzaSyAs3_dAYF7KMlWJrpdyC9TbXMwsu73A_bg") #api_key1
 API_KEY = os.getenv("api_key1")
 # Use the API key with the GenAI configuration
 genai.configure(api_key=API_KEY)

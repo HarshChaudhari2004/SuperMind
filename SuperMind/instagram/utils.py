@@ -10,13 +10,11 @@ import os
 from dotenv import load_dotenv
 import csv  # Added import for csv
 
+#setup gemini api key
 load_dotenv()
 API_KEY = os.getenv("api_key2")
 # Use the API key with the GenAI configuration
 genai.configure(api_key=API_KEY)
-
-# Set up Google Gemini API
-genai.configure(api_key="AIzaSyAs3_dAYF7KMlWJrpdyC9TbXMwsu73A_bg")
 
 def to_base62(num):
     base62_chars = string.ascii_letters + string.digits  # A-Z, a-z, 0-9

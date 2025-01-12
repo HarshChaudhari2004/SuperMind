@@ -7,7 +7,13 @@ import uuid
 import string
 import pandas as pd
 import os
+from dotenv import load_dotenv
 import csv  # Added import for csv
+
+load_dotenv()
+API_KEY = os.getenv("api_key2")
+# Use the API key with the GenAI configuration
+genai.configure(api_key=API_KEY)
 
 # Set up Google Gemini API
 genai.configure(api_key="AIzaSyAs3_dAYF7KMlWJrpdyC9TbXMwsu73A_bg")
@@ -45,7 +51,7 @@ def download_instagram_post(url):
         return {"error": "The post does not contain a video."}
 
 def extract_shortcode_from_url(url):
-    pattern = r"instagram\.com/(?:reel|p)/([A-Za-z0-9_-]+)"
+    pattern = r"instagram\.com/(?:reels|p)/([A-Za-z0-9_-]+)"
     match = re.search(pattern, url)
     if match:
         return match.group(1)
@@ -75,7 +81,7 @@ def analyze_video_with_ai(shortcode, post):
 
     prompt = '''Summarize this video content, and get the context of the video in a few lines. Write all of it in a few lines. 
     don't say anything in start of response like "Sure, here is the summary of the video content:" or at the end of response just write the summary and nothing else.'''
-    model = genai.GenerativeModel(model_name="gemini-2.0-flash-exp")
+    model = genai.GenerativeModel(model_name="gemini-1.5-pro")
 
     response_summary = model.generate_content([video_file, prompt], request_options={"timeout": 600})
     summary_text = response_summary.text

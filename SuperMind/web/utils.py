@@ -1,4 +1,5 @@
 import os
+from dotenv import load_dotenv
 import requests
 import google.generativeai as genai
 from bs4 import BeautifulSoup
@@ -7,6 +8,8 @@ import string
 from urllib.parse import unquote, urlparse
 import csv
 from datetime import datetime
+
+load_dotenv()
 
 # Function to convert a number to Base62 (shortened ID)
 def to_base62(num):
@@ -25,7 +28,11 @@ def generate_short_id():
     return to_base62(uuid_int)[:8]  # Shorten to the first 8 characters
 
 # Set up Google Gemini API
-genai.configure(api_key="AIzaSyBEfuoZbcieg3a7JnzE0LSgiLfmeIBg8q0")  # Ensure API key is set in your environment
+#genai.configure(api_key="AIzaSyBEfuoZbcieg3a7JnzE0LSgiLfmeIBg8q0") #apikey2  # Ensure API key is set in your environment
+
+API_KEY = os.getenv("api_key2")
+# Use the API key with the GenAI configuration
+genai.configure(api_key=API_KEY)
 
 def get_website_info(website_url, soup):
     try:

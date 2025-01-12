@@ -107,6 +107,7 @@ body::-webkit-scrollbar {
   white-space: pre-wrap; /* Ensures long titles break correctly */
   text-align: justify;
   max-height: 200px; /* Adjust as needed */
+  overflow: hidden; /* Prevent overflow */
 }
 
 /* Customize scrollbar for .popup-right h2 */
@@ -288,7 +289,14 @@ textarea {
   cursor: pointer;
   white-space: nowrap;
   text-overflow: ellipsis;
+  overflow: hidden;
   max-width: 100%;
+  display: block;
+}
+
+.truncated-title.full-title {
+  white-space: normal;
+  overflow: scroll;
 }
 
 .truncated-title::-webkit-scrollbar {

@@ -14,6 +14,7 @@ export default function Popup({ cardData, onClose, isDarkTheme }) {
   const [imageUrl, setImageUrl] = useState(cardData?.["Thumbnail URL"]);
   const [showFullSummary, setShowFullSummary] = useState(false);
   const [showFullTags, setShowFullTags] = useState(false);
+  const [instagramEmbedHTML, setInstagramEmbedHTML] = useState(null);
 
   // Handle "Escape" key to close popup and disable background scrolling
   useEffect(() => {
@@ -30,15 +31,17 @@ export default function Popup({ cardData, onClose, isDarkTheme }) {
     };
   }, [onClose]);
 
-  // Fetch Instagram thumbnail using proxy
+  // Fetch Instagram embed iframe (alternative to oEmbed API)
   useEffect(() => {
-    if (!cardData?.["Thumbnail URL"] || cardData["Thumbnail URL"].startsWith("/assets/")) return;
     if (cardData?.url?.includes('instagram.com')) {
-      const proxyUrl = `https://proxy.corsfix.com/?${cardData["Thumbnail URL"]}`;
-      fetch(proxyUrl)
-        .then(response => response.blob())
-        .then(imageBlob => setImageUrl(URL.createObjectURL(imageBlob)))
-        .catch(() => setImageUrl("/assets/image-placeholder.png"));
+      const instagramUrl = cardData.url;
+      const postId = extractInstagramPostId(instagramUrl);
+      if (postId) {
+        // Construct the embed URL, tailored for Instagram Reels (video only)
+        const embedUrl = `https://www.instagram.com/p/${postId}/embed`;
+
+        setInstagramEmbedHTML(embedUrl); // Set the iframe URL
+      }
     }
   }, [cardData]);
 
@@ -66,13 +69,25 @@ export default function Popup({ cardData, onClose, isDarkTheme }) {
     if (cardData?.url?.includes('instagram.com')) {
       return (
         <div className="fallback-content instagram-content">
-          <div className="instagram-thumbnail-wrapper">
-            <img 
-              src={imageUrl || "/assets/image-placeholder.png"}
-              alt={cardData.Title}
-              className="instagram-image"
+          {instagramEmbedHTML ? (
+            <iframe
+              src={instagramEmbedHTML}
+              width="720px"
+              height="1280px"
+              frameBorder="0"
+              allowTransparency="true"
+              scrolling="no"
+              className="instagram-reel-video"
             />
-          </div>
+          ) : (
+            <div className="instagram-thumbnail-wrapper">
+              <img 
+                src={imageUrl || "/assets/image-placeholder.png"}
+                alt={cardData.Title}
+                className="instagram-image"
+              />
+            </div>
+          )}
         </div>
       );
     }
@@ -83,6 +98,7 @@ export default function Popup({ cardData, onClose, isDarkTheme }) {
           width="1280"
           height="720"
           frameBorder="0"
+          padding="10"
           allowFullScreen
           title="YouTube Video"
         />
@@ -135,7 +151,7 @@ export default function Popup({ cardData, onClose, isDarkTheme }) {
         </div>
         <div className="popup-right">
           <h2 
-            className="truncated-title" 
+            className={`truncated-title ${showFullTitle ? 'full-title' : ''}`} 
             onClick={(e) => {
               if (!hasSelectedText()) {
                 setShowFullTitle(!showFullTitle);
@@ -191,6 +207,12 @@ export default function Popup({ cardData, onClose, isDarkTheme }) {
       </div>
     </div>
   );
+}
+
+// Extract Instagram post ID from URL
+function extractInstagramPostId(url) {
+  const match = url?.match(/instagram\.com\/p\/([a-zA-Z0-9_-]+)/);
+  return match ? match[1] : null;
 }
 
 // Extract YouTube video ID from URL

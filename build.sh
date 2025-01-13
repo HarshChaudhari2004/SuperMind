@@ -1,3 +1,4 @@
+// filepath: /i:/SuperMind - Copy/SuperMind/build.sh
 #!/usr/bin/env bash
 set -e
 
@@ -14,4 +15,4 @@ echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
 echo "Starting Django server..."
-python manage.py runserver
+gunicorn SuperMind.wsgi:application --bind 0.0.0.0:8000

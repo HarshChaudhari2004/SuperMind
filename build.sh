@@ -1,4 +1,3 @@
-// filepath: /i:/SuperMind - Copy/SuperMind/build.sh
 #!/usr/bin/env bash
 set -e
 
@@ -12,6 +11,7 @@ npm run build
 cd ..
 
 echo "Collecting static files..."
-python manage.py collectstatic --noinput
+python SuperMind/manage.py collectstatic --noinput
 
 echo "Starting Django server..."
+

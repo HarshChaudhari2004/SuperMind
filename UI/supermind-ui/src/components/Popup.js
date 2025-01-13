@@ -11,7 +11,7 @@ export default function Popup({ cardData, onClose, isDarkTheme }) {
   );
   const [iframeError, setIframeError] = useState(false);
   const [showFullTitle, setShowFullTitle] = useState(false);
-  const [imageUrl, setImageUrl] = useState(cardData?.["Thumbnail URL"]);
+  const [imageUrl] = useState(cardData?.["Thumbnail URL"]);
   const [showFullSummary, setShowFullSummary] = useState(false);
   const [showFullTags, setShowFullTags] = useState(false);
   const [instagramEmbedHTML, setInstagramEmbedHTML] = useState(null);
@@ -78,6 +78,7 @@ export default function Popup({ cardData, onClose, isDarkTheme }) {
               allowTransparency="true"
               scrolling="no"
               className="instagram-reel-video"
+              title="Instagram Embed"
             />
           ) : (
             <div className="instagram-thumbnail-wrapper">

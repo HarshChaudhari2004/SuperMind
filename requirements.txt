@@ -11,3 +11,4 @@ uuid
 django-cors-headers
 djangorestframework
 gunicorn
+whitenoise

@@ -9,7 +9,7 @@ cd UI/supermind-ui
 npm install
 npm run build
 cd ../..
-cd Supermind
+
 
 echo "Collecting static files..."
 python SuperMind/manage.py collectstatic --noinput

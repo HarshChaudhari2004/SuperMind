@@ -15,3 +15,5 @@ echo "Collecting static files..."
 python SuperMind/manage.py collectstatic --noinput
 
 echo "Starting Django server..."
+echo "Current directory:"
+pwd

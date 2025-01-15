@@ -17,10 +17,11 @@ https://docs.djangoproject.com/en/4.2/howto/deployment/wsgi/
 
 import os
 import sys
-from django.core.wsgi import get_wsgi_application
 
-# Explicitly add the SuperMind directory to the Python path
-sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'SuperMind'))
+print(f"Current working directory: {os.getcwd()}")
+print(f"Python path: {sys.path}")
+
+from django.core.wsgi import get_wsgi_application
 
 os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'SuperMind.settings')
 

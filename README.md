@@ -66,5 +66,6 @@ SuperMind is a web application that integrates a Django backend with a React fro
    ```sh
    npm install
    ```
+   ```
    npm start
    ```

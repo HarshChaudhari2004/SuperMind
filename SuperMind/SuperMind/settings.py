@@ -52,6 +52,10 @@ INSTALLED_APPS = [
     'rest_framework',
 ]
 
+import sys
+print("INSTALLED_APPS:", sys.modules.keys())
+
+
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
     'whitenoise.middleware.WhiteNoiseMiddleware',  # Add WhiteNoise middleware

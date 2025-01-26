@@ -1,5 +1,7 @@
 #!/usr/bin/env bash
 set -e
+cd SuperMind
+pwd
 
 echo "Installing Django dependencies..."
 pip install -r requirements.txt

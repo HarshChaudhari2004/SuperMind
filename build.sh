@@ -10,4 +10,3 @@ echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
 echo "Starting Django server..."
-cd SuperMind

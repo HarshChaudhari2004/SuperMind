@@ -1,0 +1,14 @@
+Django
+requests
+google-generativeai
+youtube-transcript-api
+instaloader
+pandas
+beautifulsoup4
+python-dotenv
+urllib3
+uuid
+django-cors-headers
+djangorestframework
+gunicorn
+whitenoise

@@ -35,6 +35,7 @@ RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
+CSRF_TRUSTED_ORIGINS = ['supermind-production.up.railway.app', 'localhost', '127.0.0.1', 'supermind-9fii.onrender.com']
 # Application definition
 
 INSTALLED_APPS = [

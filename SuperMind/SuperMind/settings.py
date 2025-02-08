@@ -36,7 +36,7 @@ RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
-CSRF_TRUSTED_ORIGINS = ['https://supermind-production.up.railway.app', 'localhost', '127.0.0.1', 'https://supermind-9fii.onrender.com']
+CSRF_TRUSTED_ORIGINS = ['supermind-production.up.railway.app', 'localhost', '127.0.0.1', 'https://supermind-9fii.onrender.com']
 # Application definition
 
 INSTALLED_APPS = [
@@ -78,13 +78,13 @@ CORS_ALLOWED_ORIGINS = [
     "chrome-extension://kfkcllbfkibffocglokobkbfganafjcc",
     "http://localhost:3000",
     "https://supermind-9fii.onrender.com",  # Your Render URL
-    'supermind-production.up.railway.app'
+    'https://supermind-production.up.railway.app'
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "https://supermind-9fii.onrender.com",  # Your Render URL
-    'supermind-production.up.railway.app'
+    'https://supermind-production.up.railway.app'
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True

@@ -1,1 +1,1 @@
-web: gunicorn SuperMind.wsgi
+web: gunicorn SuperMind.SuperMind.wsgi

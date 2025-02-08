@@ -53,12 +53,12 @@ INSTALLED_APPS = [
     'rest_framework',
 ]
 
-import sys
-import os
-print(f"PYTHON PATH: {sys.path}")
-print(f"BASE DIR: {BASE_DIR}")
-print(f"INSTALLED APPS: {INSTALLED_APPS}")
-print(f"video_summary path exists: {os.path.exists(os.path.join(BASE_DIR, 'video_summary'))}")
+# import sys
+# import os
+# print(f"PYTHON PATH: {sys.path}")
+# print(f"BASE DIR: {BASE_DIR}")
+# print(f"INSTALLED APPS: {INSTALLED_APPS}")
+# print(f"video_summary path exists: {os.path.exists(os.path.join(BASE_DIR, 'video_summary'))}")
 
 
 MIDDLEWARE = [

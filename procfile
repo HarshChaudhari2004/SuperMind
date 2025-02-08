@@ -1,0 +1,1 @@
+web: gunicorn SuperMind.SuperMind.wsgi

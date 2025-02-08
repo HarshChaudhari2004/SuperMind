@@ -30,6 +30,7 @@ from dotenv import load_dotenv
 load_dotenv()
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
+
 ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'supermind-production.up.railway.app']
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
@@ -77,11 +78,13 @@ CORS_ALLOWED_ORIGINS = [
     "chrome-extension://kfkcllbfkibffocglokobkbfganafjcc",
     "http://localhost:3000",
     "https://supermind-9fii.onrender.com",  # Your Render URL
+    'supermind-production.up.railway.app'
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:3000",
     "https://supermind-9fii.onrender.com",  # Your Render URL
+    'supermind-production.up.railway.app'
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True

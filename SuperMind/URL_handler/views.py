@@ -19,15 +19,6 @@ def save_user_notes(request):
 
     return JsonResponse({"error": "Invalid request method."}, status=405)
 
-# View to get Instagram video data
-def get_instagram_data(request):
-    try:
-        # Fetch Instagram video data from 'instagram_video_data.csv'
-        data = fetch_csv_data('instagram_video_data.csv')
-        # If you have the 'Thumbnail URL' column, include it in the response
-        return JsonResponse(data, safe=False)  # Ensure safe=False for non-dict responses
-    except Exception as e:
-        return JsonResponse({"error": str(e)}, status=500)
 # View to get video data
 def get_video_data(request):
     try:

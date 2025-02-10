@@ -17,6 +17,7 @@ import string
 from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from dotenv import load_dotenv
+from utils.supabase_client import save_to_supabase
 
 load_dotenv()
 
@@ -124,9 +125,10 @@ def generate_tags(content):
 
 # Function to save to CSV
 def save_to_csv(video_data, filename="video_data.csv"):
+    """Save data to CSV file"""
     fieldnames = [
-        'ID', 'Title', 'Channel Name', 'Video Type', 'Tags', 
-        'Summary', 'Thumbnail URL', 'Original URL', 'Date Added'
+        'id', 'user_id', 'title', 'channel_name', 'video_type',
+        'tags', 'summary', 'thumbnail_url', 'original_url', 'date_added'
     ]
     
     file_exists = os.path.exists(filename)
@@ -134,34 +136,43 @@ def save_to_csv(video_data, filename="video_data.csv"):
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         if not file_exists:
             writer.writeheader()
+        print("Saving data:", video_data)  # Add debug logging
         writer.writerow(video_data)
 
 # View for generating summary and tags
 def generate_keywords_and_summary(request):
-    youtube_video_url = request.GET.get('url')
-    if youtube_video_url:
-        video_id = youtube_video_url.split("v=")[1].split("&")[0]
+    try:
+        url = request.GET.get('url')
+        user_id = request.GET.get('user_id')  # Get user_id from request params
+        
+        if not url or not user_id:
+            return JsonResponse({"error": "Missing URL or user_id"}, status=400)
+            
+        video_id = url.split("v=")[1].split("&")[0]
         title, channel_name, video_type, thumbnails = fetch_youtube_details(video_id)
         if title and channel_name and video_type:
-            transcript = extract_transcript_details(youtube_video_url)
+            transcript = extract_transcript_details(url)
             if transcript:
                 summary = generate_summary(transcript)
                 tags = generate_tags(transcript)
                 video_data = {
-                    'ID': generate_short_id(),
-                    'Title': title,
-                    'Channel Name': channel_name,
-                    'Video Type': video_type,
-                    'Tags': ", ".join(tags),
-                    'Summary': summary,
-                    'Thumbnail URL': thumbnails,
-                    'Original URL': youtube_video_url,
-                    'Date Added': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+                    'id': generate_short_id(),
+                    'user_id': user_id,  # Use the user_id from request
+                    'title': title,
+                    'channel_name': channel_name,
+                    'video_type': video_type,
+                    'tags': ", ".join(tags),
+                    'summary': summary,
+                    'thumbnail_url': thumbnails,
+                    'original_url': url,
+                    'date_added': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                 }
                 save_to_csv(video_data)
+                save_to_supabase(video_data)  # <-- Add this call
                 return JsonResponse(video_data, safe=False)
             else:
                 return JsonResponse({"error": "Transcript not available."})
         else:
             return JsonResponse({"error": "Video details not found."})
-    return JsonResponse({"error": "Invalid URL."})
+    except Exception as e:
+        return JsonResponse({"error": str(e)}, status=500)

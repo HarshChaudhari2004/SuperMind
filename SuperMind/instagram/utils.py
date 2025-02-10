@@ -1,14 +1,20 @@
 import instaloader
+from django.shortcuts import render
+from django.http import HttpResponse
+from datetime import datetime  # Add this import at the top
+from utils.supabase_client import save_to_supabase
 import requests
 import re
 import time
 import google.generativeai as genai
 import uuid
 import string
-import pandas as pd
+# import pandas as pd
 import os
 from dotenv import load_dotenv
 import csv  # Added import for csv
+from datetime import datetime
+from utils.supabase_client import save_to_supabase
 
 #setup gemini api key
 load_dotenv()
@@ -30,7 +36,8 @@ def generate_short_id():
     uuid_int = uuid.uuid4().int
     return to_base62(uuid_int)[:8]
 
-def download_instagram_post(url):
+def download_instagram_post(url, user_id):
+    """Updated to include user_id parameter"""
     L = instaloader.Instaloader()
     shortcode = extract_shortcode_from_url(url)
     if not shortcode:
@@ -38,15 +45,14 @@ def download_instagram_post(url):
 
     try:
         post = instaloader.Post.from_shortcode(L.context, shortcode)
+        if post.is_video:
+            video_url = post.video_url
+            download_video(video_url, shortcode)
+            return analyze_video_with_ai(shortcode, post, user_id)
+        else:
+            return {"error": "The post does not contain a video."}
     except Exception as e:
         return {"error": f"Error loading post: {e}"}
-
-    if post.is_video:
-        video_url = post.video_url
-        download_video(video_url, shortcode)
-        return analyze_video_with_ai(shortcode, post)
-    else:
-        return {"error": "The post does not contain a video."}
 
 def extract_shortcode_from_url(url):
     pattern = r"instagram\.com/(?:reels|p)/([A-Za-z0-9_-]+)"
@@ -67,7 +73,8 @@ def download_video(url, shortcode):
     else:
         return {"error": "Failed to retrieve video."}
 
-def analyze_video_with_ai(shortcode, post):
+def analyze_video_with_ai(shortcode, post, user_id):
+    """Updated to include user_id parameter"""
     video_file_name = f"{shortcode}.mp4"
     video_file = genai.upload_file(path=video_file_name)
     while video_file.state.name == "PROCESSING":
@@ -92,18 +99,23 @@ def analyze_video_with_ai(shortcode, post):
 
     hashtags = extract_hashtags(post.caption) + extract_hashtags(summary_text)
     all_tags = tags_text.strip().replace('#', '') + "," + ",".join([hashtag.replace('#', '') for hashtag in hashtags])
-
+    import requests
     data = {
-        'ID': generate_short_id(),
-        'Title': post.caption if post.caption else "No Caption",
-        'Channel Name': post.owner_username,
-        'Tags': all_tags,
-        'Summary': summary_text,
-        'Thumbnail URL': post.url,
-        'Original URL': f"https://www.instagram.com/p/{shortcode}/"
+        'id': generate_short_id(),
+        'user_id': user_id,
+        'title': post.caption if post.caption else "No Caption",
+        'channel_name': post.owner_username,
+        'video_type': 'instagram',
+        'tags': all_tags,
+        'summary': summary_text,
+        'thumbnail_url': post.url,
+        'original_url': f"https://www.instagram.com/p/{shortcode}/",
+        'date_added': datetime.now().isoformat()
     }
 
+    # Save to both CSV and Supabase
     save_to_csv(data)
+    save_to_supabase(data)
 
     try:
         video_file.delete()
@@ -121,22 +133,17 @@ def analyze_video_with_ai(shortcode, post):
 def extract_hashtags(text):
     return re.findall(r'#\w+', text)
 
-def save_to_csv(data, filename="video_data.csv"):  # Changed from instagram_video_data.csv
-    from datetime import datetime
-    
+def save_to_csv(video_data, filename="video_data.csv"):
+    """Save data to CSV file"""
     fieldnames = [
-        'ID', 'Title', 'Channel Name', 'Video Type', 'Tags', 
-        'Summary', 'Thumbnail URL', 'Original URL', 'Date Added'
+        'id', 'user_id', 'title', 'channel_name', 'video_type',
+        'tags', 'summary', 'thumbnail_url', 'original_url', 'date_added'
     ]
-
-    data.update({
-        'Video Type': 'Instagram',  # Add video type
-        'Date Added': datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # Add date
-    })
-
+    
     file_exists = os.path.exists(filename)
     with open(filename, mode='a', newline='', encoding='utf-8') as file:
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         if not file_exists:
             writer.writeheader()
-        writer.writerow(data)
+        print("Saving data:", video_data)  # Add debug logging
+        writer.writerow(video_data)

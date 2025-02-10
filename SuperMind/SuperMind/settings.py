@@ -13,6 +13,13 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -31,7 +38,7 @@ load_dotenv()
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', 'supermind-production.up.railway.app']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.0.104', 'supermind-production.up.railway.app']
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
@@ -40,6 +47,7 @@ CSRF_TRUSTED_ORIGINS = [
     'https://supermind-production.up.railway.app',
     'http://localhost',
     'http://127.0.0.1',
+    'http://192.168.0.104',
     'https://supermind-9fii.onrender.com'
 ]
 # Application definition
@@ -55,6 +63,7 @@ INSTALLED_APPS = [
     'corsheaders',
     'instagram',
     'web',
+    'utils',
     'URL_handler',
     'rest_framework',
 ]
@@ -68,25 +77,49 @@ INSTALLED_APPS = [
 
 
 MIDDLEWARE = [
-    "django.middleware.security.SecurityMiddleware",
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # Add WhiteNoise middleware
-    "django.contrib.sessions.middleware.SessionMiddleware",
-    "django.middleware.common.CommonMiddleware",
-    "django.middleware.csrf.CsrfViewMiddleware",
-    "django.contrib.auth.middleware.AuthenticationMiddleware",
-    "django.contrib.messages.middleware.MessageMiddleware",
-    "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',  # Comment this out or add exemption
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    'SuperMind.middleware.SupabaseAuthMiddleware',
 ]
 
 CORS_ALLOWED_ORIGINS = [
     "chrome-extension://kfkcllbfkibffocglokobkbfganafjcc",
     "http://localhost:3000",
+    'http://192.168.0.104',
     "https://supermind-9fii.onrender.com",  # Your Render URL
-    "https://supermind-production.up.railway.app",
+    # "https://supermind-production.up.railway.app",
+    "http://localhost:8081",
+    "http://192.168.0.104:8000",
+]
+
+CORS_ALLOW_HEADERS = [
+    'accept',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
 ]
 
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOW_METHODS = [
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+]
 
 
 ROOT_URLCONF = "SuperMind.urls"

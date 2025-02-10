@@ -26,7 +26,7 @@ def generate_short_id():
     return to_base62(uuid_int)[:8]  # Shorten to the first 8 characters
 
 # Function to save user notes and URL to CSV
-def save_user_notes_to_csv(original_url, user_notes, filename="video_data.csv"):
+def save_user_notes_to_csv(original_url, user_notes, user_id, filename="video_data.csv"):
     try:
         # Absolute path to the video_data.csv file
         file_path = r"I:\SuperMind\SuperMind\video_data.csv"  # Update this with the correct path
@@ -34,6 +34,7 @@ def save_user_notes_to_csv(original_url, user_notes, filename="video_data.csv"):
         # Prepare the data for CSV
         website_data = {
             'ID': generate_short_id(),
+            'user_id': user_id,  # Add user_id to the data
             'Title': original_url,
             'Description': user_notes or "User added notes",
             'Channel Name': "N/A",
@@ -52,9 +53,9 @@ def save_user_notes_to_csv(original_url, user_notes, filename="video_data.csv"):
         # Open the file in append mode
         with open(file_path, mode='a', newline='', encoding='utf-8') as file:
             fieldnames = [
-                'ID', 'Title', 'Description', 'Channel Name', 'Thumbnail URL', 
-                'Video Type', 'Top 100 Comments', 'Tags', 'Summary', 
-                'Original URL', 'User notes'
+                'ID', 'user_id', 'Title', 'Description', 'Channel Name', 
+                'Thumbnail URL', 'Video Type', 'Top 100 Comments', 'Tags', 
+                'Summary', 'Original URL', 'User notes'
             ]
             writer = csv.DictWriter(file, fieldnames=fieldnames)
             
@@ -71,19 +72,12 @@ def save_user_notes_to_csv(original_url, user_notes, filename="video_data.csv"):
         return {"error": str(e)}
 
 # Function to fetch CSV data and return as JSON response
-def fetch_csv_data(file_path):
-    try:
-        if not os.path.exists(file_path):
-            logger.warning(f"File {file_path} not found.")
-            return JsonResponse({'error': f'{file_path} not found.'}, status=404)
-        
-        with open(file_path, mode='r', encoding='utf-8') as csvfile:
-            reader = csv.DictReader(csvfile)
-            data = [row for row in reader]
-            return data
-    except Exception as e:
-        logger.error(f"Error reading CSV: {e}")
-        return JsonResponse({'error': str(e)}, status=500)
+def fetch_csv_data(filename):
+    with open(filename, mode='r', encoding='utf-8') as file:
+        reader = csv.DictReader(file)
+        data = list(reader)
+        print("CSV Data:", data)  # Add debug logging
+        return data
 
 # Function to fetch data from both CSV files and return a combined response
 def fetch_combined_csv_data(request):

@@ -8,12 +8,13 @@ from .utils import (
     generate_tags,
     generate_short_id
 )
+from utils.supabase_client import save_to_supabase
 
-def save_to_csv(website_data, filename="video_data.csv"):
-    """Save data to common CSV file"""
+def save_to_csv(video_data, filename="video_data.csv"):
+    """Save data to CSV file"""
     fieldnames = [
-        'ID', 'Title', 'Channel Name', 'Video Type', 'Tags', 
-        'Summary', 'Thumbnail URL', 'Original URL', 'Date Added'
+        'id', 'user_id', 'title', 'channel_name', 'video_type',
+        'tags', 'summary', 'thumbnail_url', 'original_url', 'date_added'
     ]
     
     file_exists = os.path.exists(filename)
@@ -21,45 +22,47 @@ def save_to_csv(website_data, filename="video_data.csv"):
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         if not file_exists:
             writer.writeheader()
-        writer.writerow(website_data)
+        print("Saving data:", video_data)  # Add debug logging
+        writer.writerow(video_data)
 
 def analyze_website(request):  # Renamed from generate_web_summary to match urls.py
     """Analyze website content and save to CSV"""
     website_url = request.GET.get('url')
+    user_id = request.GET.get('user_id')  # Get user_id from query params
+    
     if not website_url:
-        return JsonResponse(
-            {"error": "No URL provided"}, 
-            status=400  # Bad Request
-        )
-
-    scraped_data = scrape_website_content(website_url)
-    if not scraped_data:
-        return JsonResponse(
-            {"error": "Failed to scrape website"}, 
-            status=500  # Internal Server Error
-        )
+        return JsonResponse({"error": "No URL provided"}, status=400)
+    
+    if not user_id:
+        return JsonResponse({"error": "User ID required"}, status=400)
 
     try:
+        scraped_data = scrape_website_content(website_url)
+        if not scraped_data:
+            return JsonResponse({"error": "Failed to scrape website"}, status=500)
+
         summary = generate_summary(scraped_data['content'])
         tags = generate_tags(scraped_data['content'])
 
         website_data = {
-            'ID': generate_short_id(),
-            'Title': scraped_data['title'],
-            'Channel Name': scraped_data['domain'],
-            'Video Type': '',
-            'Tags': ", ".join(tags),
-            'Summary': summary,
-            'Thumbnail URL': scraped_data['featured_image'],
-            'Original URL': website_url,
-            'Date Added': datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            'id': generate_short_id(),
+            'user_id': user_id,  # Use the provided user_id
+            'title': scraped_data['title'],
+            'channel_name': scraped_data['domain'],
+            'video_type': 'website',
+            'tags': ", ".join(tags),
+            'summary': summary,
+            'thumbnail_url': scraped_data['featured_image'],
+            'original_url': website_url,
+            'date_added': datetime.now().isoformat()
         }
 
-        save_to_csv(website_data)
-        return JsonResponse(website_data, status=200)  # OK
+        # Save to Supabase first
+        result = save_to_supabase(website_data)
+        if not result:
+            return JsonResponse({"error": "Failed to save to database"}, status=500)
+
+        return JsonResponse(website_data)
 
     except Exception as e:
-        return JsonResponse(
-            {"error": f"Error processing website: {str(e)}"}, 
-            status=500  # Internal Server Error
-        )
+        return JsonResponse({"error": str(e)}, status=500)

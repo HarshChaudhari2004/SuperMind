@@ -48,7 +48,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost',
     'http://127.0.0.1',
     'http://192.168.0.104',
-    'https://supermind-9fii.onrender.com'
+    'https://supermind-9fii.onrender.com',
 ]
 # Application definition
 

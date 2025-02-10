@@ -38,18 +38,25 @@ load_dotenv()
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.0.104', 'https://supermind-9fii.onrender.com', 'supermind-production.up.railway.app']
+ALLOWED_HOSTS = [
+    '127.0.0.1', 
+    'localhost', 
+    '192.168.0.104', 
+    'supermind-9fii.onrender.com'  # Remove https:// prefix
+]
+
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 CSRF_TRUSTED_ORIGINS = [
-    'https://supermind-production.up.railway.app',
-    'http://localhost',
-    'http://127.0.0.1',
-    'http://192.168.0.104',
     'https://supermind-9fii.onrender.com',
+    'http://localhost:8081',
+    'http://127.0.0.1:8000',
+    'http://192.168.0.104:8000',
+    'http://192.168.0.104:8081'
 ]
+
 # Application definition
 
 INSTALLED_APPS = [
@@ -91,9 +98,10 @@ MIDDLEWARE = [
 # Update CORS settings
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8081",
-    "https://supermind-9fii.onrender.com",
     "http://192.168.0.104:8000",
+    "http://192.168.0.104:8081",
     "http://192.168.0.104",
+    "https://supermind-9fii.onrender.com"
 ]
 
 CORS_ALLOW_HEADERS = [
@@ -108,8 +116,9 @@ CORS_ALLOW_HEADERS = [
     'x-requested-with',
 ]
 
-CORS_ALLOW_ALL_ORIGINS = False  # Set to False and use specific origins
+CORS_ALLOW_ALL_ORIGINS = True  # Temporarily set to True for testing
 CORS_ALLOW_CREDENTIALS = True
+CORS_EXPOSE_HEADERS = ['Content-Type', 'X-CSRFToken']
 CORS_ALLOW_METHODS = [
     'DELETE',
     'GET',

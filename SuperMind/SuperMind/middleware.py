@@ -11,6 +11,10 @@ supabase_client = supabase.create_client(SUPABASE_URL, SUPABASE_KEY)
 
 class SupabaseAuthMiddleware(MiddlewareMixin):
     def process_request(self, request):
+        # Skip auth for OPTIONS requests
+        if request.method == 'OPTIONS':
+            return None
+            
         auth_header = request.headers.get("Authorization")
         
         if auth_header and auth_header.startswith("Bearer "):
@@ -21,5 +25,6 @@ class SupabaseAuthMiddleware(MiddlewareMixin):
                     request.user_id = user.user.id  # Set user_id on request
                     return None
             except Exception as e:
-                return JsonResponse({"error": str(e)}, status=401)
+                print(f"Auth error: {e}")
+                return JsonResponse({"error": "Invalid authentication token"}, status=401)
         return JsonResponse({"error": "Authentication required"}, status=401)

@@ -38,7 +38,7 @@ load_dotenv()
 DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
 
-ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.0.104', 'supermind-production.up.railway.app']
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', '192.168.0.104', 'https://supermind-9fii.onrender.com', 'supermind-production.up.railway.app']
 RENDER_EXTERNAL_HOSTNAME = os.environ.get('RENDER_EXTERNAL_HOSTNAME')
 if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
@@ -91,6 +91,7 @@ MIDDLEWARE = [
 # Update CORS settings
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8081",
+    "https://supermind-9fii.onrender.com",
     "http://192.168.0.104:8000",
     "http://192.168.0.104",
 ]

@@ -14,4 +14,3 @@ gunicorn
 whitenoise
 supabase
 protobuf
-csv

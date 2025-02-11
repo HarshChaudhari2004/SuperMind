@@ -55,7 +55,7 @@ def download_instagram_post(url, user_id):
         return {"error": f"Error loading post: {e}"}
 
 def extract_shortcode_from_url(url):
-    pattern = r"instagram\.com/(?:reels|p)/([A-Za-z0-9_-]+)"
+    pattern = r"instagram\.com/(?:reels|p|reel)/([A-Za-z0-9_-]+)"
     match = re.search(pattern, url)
     if match:
         return match.group(1)

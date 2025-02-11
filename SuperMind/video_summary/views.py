@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 # Create a simple home view for the root URL
 def home(request):
-    return HttpResponse("Welcome to SuperMind! Use /api/generate-summary to interact with the API.")
+    return HttpResponse("Welcome to SuperMind!")
 
 import os
 import requests
@@ -100,7 +100,7 @@ def extract_transcript_details(youtube_video_url):
         transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
         
         # Try multiple language codes
-        for lang_code in ['en', 'en-US', 'en-GB', 'en-IN', 'hi', 'mr']:
+        for lang_code in ['en', 'en-IN', 'en-US', 'hi', 'mr', 'en-GB']:
             try:
                 transcript = transcript_list.find_transcript([lang_code])
                 text = " ".join([entry["text"] for entry in transcript.fetch()])

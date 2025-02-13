@@ -8,7 +8,7 @@ logger = logging.getLogger(__name__)
 
 # Create a simple home view for the root URL
 def home(request):
-    return HttpResponse("Welcome to SuperMind!")
+    return HttpResponse("Welcome to SuperMind! Use /api/generate-summary to interact with the API.")
 
 import os
 import requests
@@ -89,33 +89,14 @@ def fetch_youtube_details(video_id):
 # Function to extract transcript details from YouTube
 def extract_transcript_details(youtube_video_url):
     try:
-        # Extract video ID from various URL formats
-        if 'youtu.be' in youtube_video_url:
-            video_id = youtube_video_url.split('/')[-1].split('?')[0]
-        else:
-            video_id = youtube_video_url.split('v=')[1].split('&')[0]
-
-        logger.info(f"Attempting to fetch transcript for video ID: {video_id}")
-        
+        video_id = youtube_video_url.split("v=")[1].split("&")[0]
         transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
-        
-        # Try multiple language codes
-        for lang_code in ['en', 'en-IN', 'en-US', 'hi', 'mr', 'en-GB']:
-            try:
-                transcript = transcript_list.find_transcript([lang_code])
-                text = " ".join([entry["text"] for entry in transcript.fetch()])
-                logger.info(f"Successfully found transcript in language: {lang_code}")
-                return text
-            except Exception as e:
-                logger.warning(f"Failed to get transcript in {lang_code}: {e}")
-                continue
-                
-        # If no transcript found in any language
-        logger.error("No transcript found in any supported language")
+        transcript = transcript_list.find_transcript(['en-IN', 'en', 'mr', 'hi'])
+        transcript_text = " ".join([entry["text"] for entry in transcript.fetch()])
+        return transcript_text
+    except NoTranscriptFound as e:
         return None
-        
     except Exception as e:
-        logger.error(f"Error in extract_transcript_details: {e}")
         return None
 
 # Function to generate summary using Gemini
@@ -167,12 +148,10 @@ def generate_keywords_and_summary(request):
         url = request.GET.get('url')
         user_id = request.GET.get('user_id')
         
-        logger.info(f"Received request - URL: {url}, User ID: {user_id}")
-        
         if not url or not user_id:
-            logger.error("Missing URL or user_id")
             return JsonResponse({"error": "Missing URL or user_id"}, status=400)
         
+        # Improved URL parsing
         try:
             if 'youtu.be' in url:
                 video_id = url.split('/')[-1].split('?')[0]
@@ -182,41 +161,32 @@ def generate_keywords_and_summary(request):
                 else:
                     video_id = url.split('/')[-1]
             else:
-                logger.error(f"Invalid YouTube URL format: {url}")
                 return JsonResponse({"error": "Invalid YouTube URL format"}, status=400)
                 
             if not video_id:
-                logger.error("Could not extract video ID")
                 return JsonResponse({"error": "Could not extract video ID"}, status=400)
-                
-            logger.info(f"Extracted video ID: {video_id}")
-            
         except Exception as e:
-            logger.error(f"URL parsing failed: {str(e)}")
             return JsonResponse({"error": f"URL parsing failed: {str(e)}"}, status=400)
 
+        logger.info(f"Processing YouTube URL: {url}")
+        logger.info(f"Extracted video ID: {video_id}")
+        
         try:
             title, channel_name, video_type, thumbnails = fetch_youtube_details(video_id)
-            logger.info(f"Fetched video details - Title: {title}")
-            
-            if not all([title, channel_name, video_type]):
-                logger.error("Missing video details")
-                return JsonResponse({"error": "Failed to get complete video information"}, status=500)
-                
+            logger.info(f"Fetched video details: {title}")
         except Exception as e:
             logger.error(f"Error fetching YouTube details: {e}")
             return JsonResponse({"error": f"Failed to fetch video details: {str(e)}"}, status=500)
 
+        if not (title and channel_name and video_type):
+            return JsonResponse({"error": "Failed to get video information"}, status=500)
+
         try:
             transcript = extract_transcript_details(url)
             if not transcript:
-                logger.error("No transcript available")
                 return JsonResponse({"error": "No transcript available"}, status=400)
-                
-            logger.info("Successfully extracted transcript")
-            
         except Exception as e:
-            logger.error(f"Error extracting transcript: {e}")
+            print(f"Error extracting transcript: {e}")
             return JsonResponse({"error": "Failed to extract transcript"}, status=500)
 
         try:

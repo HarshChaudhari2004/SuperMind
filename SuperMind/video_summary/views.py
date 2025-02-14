@@ -89,14 +89,31 @@ def fetch_youtube_details(video_id):
 # Function to extract transcript details from YouTube
 def extract_transcript_details(youtube_video_url):
     try:
-        video_id = youtube_video_url.split("v=")[1].split("&")[0]
+        # Improved URL parsing
+        if 'youtu.be' in youtube_video_url:
+            video_id = youtube_video_url.split('/')[-1].split('?')[0]
+        else:
+            video_id = youtube_video_url.split("v=")[1].split("&")[0]
+            
         transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
-        transcript = transcript_list.find_transcript(['en-IN', 'en', 'mr', 'hi'])
+        
+        # Try manual transcripts first
+        try:
+            transcript = transcript_list.find_transcript(['en-IN', 'en', 'mr', 'hi'])
+        except NoTranscriptFound:
+            # Fallback to auto-generated transcripts
+            try:
+                transcript = transcript_list.find_manually_created_transcript()
+            except:
+                transcript = transcript_list.find_generated_transcript(['hi', 'en'])
+
         transcript_text = " ".join([entry["text"] for entry in transcript.fetch()])
         return transcript_text
     except NoTranscriptFound as e:
+        logger.error(f"No transcript found for video {video_id}: {str(e)}")
         return None
     except Exception as e:
+        logger.error(f"Error extracting transcript for video {video_id}: {str(e)}")
         return None
 
 # Function to generate summary using Gemini
@@ -184,9 +201,10 @@ def generate_keywords_and_summary(request):
         try:
             transcript = extract_transcript_details(url)
             if not transcript:
-                return JsonResponse({"error": "No transcript available"}, status=400)
+                logger.error(f"No transcript available for video {video_id}")
+                return JsonResponse({"error": "No transcript available for this video"}, status=400)
         except Exception as e:
-            print(f"Error extracting transcript: {e}")
+            logger.error(f"Error extracting transcript: {e}")
             return JsonResponse({"error": "Failed to extract transcript"}, status=500)
 
         try:

@@ -44,7 +44,7 @@ def update_thumbnail_url_in_csv(csv_filename="video_data.csv"):
 
     # Write the updated rows back to the CSV
     with open(csv_filename, mode='w', newline='', encoding='utf-8') as file:
-        fieldnames = ['ID', 'Title', 'Channel Name', 'Video Type', 'Tags', 'Summary', 'Thumbnail URL', 'Original URL', 'Date Added']
+        fieldnames = ['id', 'user_id', 'title', 'channel_name', 'video_type', 'tags', 'summary', 'thumbnail_url', 'original_url', 'date_added']
         writer = csv.DictWriter(file, fieldnames=fieldnames)
         writer.writeheader()
         writer.writerows(rows)

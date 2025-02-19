@@ -28,6 +28,7 @@ jobs:
         run: |
           python -m venv venv
           source venv/bin/activate
+          cd supermind
       
       - name: Install dependencies
         run: pip install -r requirements.txt

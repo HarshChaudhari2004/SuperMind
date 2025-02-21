@@ -58,7 +58,8 @@ CSRF_TRUSTED_ORIGINS = [
     'http://localhost:8081',
     'http://127.0.0.1:8000',
     'http://192.168.0.104:8000',
-    'http://192.168.0.104:8081'
+    'http://192.168.0.104:8081',
+    "exp://localhost:19000",  # Expo development
 ]
 
 # Application definition
@@ -88,9 +89,9 @@ INSTALLED_APPS = [
 
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',  # Move to top
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -107,7 +108,8 @@ CORS_ALLOWED_ORIGINS = [
     "http://192.168.0.104",
     "http://supermind-djb0e9fsfhaabbcx.westindia-01.azurewebsites.net",
     "http://tragic-christal-supermind-b64b5075.koyeb.app",
-    "https://supermind-9fii.onrender.com"
+    "https://supermind-9fii.onrender.com",
+    "exp://localhost:19000",  # Expo development
 ]
 
 CORS_ALLOW_HEADERS = [
@@ -133,6 +135,10 @@ CORS_ALLOW_METHODS = [
     'POST',
     'PUT',
 ]
+
+CSRF_COOKIE_SAMESITE = 'Lax'  # or 'None' if needed
+CSRF_COOKIE_SECURE = False  # Set to True in production
+SESSION_COOKIE_SECURE = False  # Set to True in production
 
 
 ROOT_URLCONF = "SuperMind.urls"

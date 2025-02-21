@@ -3,12 +3,13 @@ from django.shortcuts import render
 from django.http import HttpResponse
 from datetime import datetime  # Add this import at the top
 import logging
+import json
 
 logger = logging.getLogger(__name__)
 
 # Create a simple home view for the root URL
 def home(request):
-    return HttpResponse("Welcome to SuperMind! Use /api/generate-summary to interact with the API.")
+    return HttpResponse("Welcome to SuperMind!")
 
 import os
 import requests
@@ -21,6 +22,8 @@ from django.http import JsonResponse, HttpResponse
 from django.shortcuts import render
 from dotenv import load_dotenv
 from utils.supabase_client import save_to_supabase
+from django.views.decorators.csrf import csrf_exempt
+from django.middleware.csrf import get_token
 
 load_dotenv()
 
@@ -159,16 +162,28 @@ def save_to_csv(video_data, filename="video_data.csv"):
         print("Saving data:", video_data)  # Add debug logging
         writer.writerow(video_data)
 
-# View for generating summary and tags
+# Add this new view to get CSRF token
+def get_csrf_token(request):
+    return JsonResponse({'csrfToken': get_token(request)})
+
+# Add csrf_exempt decorator to the view
+@csrf_exempt
 def generate_keywords_and_summary(request):
     try:
-        url = request.GET.get('url')
-        user_id = request.GET.get('user_id')
-        
+        if request.method == 'POST':
+            data = json.loads(request.body)
+            url = data.get('url')
+            user_id = data.get('user_id')
+            transcript = data.get('transcript')  # Get transcript from frontend
+        else:
+            url = request.GET.get('url')
+            user_id = request.GET.get('user_id')
+            transcript = None
+
         if not url or not user_id:
             return JsonResponse({"error": "Missing URL or user_id"}, status=400)
-        
-        # Improved URL parsing
+
+        # Extract video details
         try:
             if 'youtu.be' in url:
                 video_id = url.split('/')[-1].split('?')[0]
@@ -179,39 +194,30 @@ def generate_keywords_and_summary(request):
                     video_id = url.split('/')[-1]
             else:
                 return JsonResponse({"error": "Invalid YouTube URL format"}, status=400)
-                
-            if not video_id:
-                return JsonResponse({"error": "Could not extract video ID"}, status=400)
         except Exception as e:
             return JsonResponse({"error": f"URL parsing failed: {str(e)}"}, status=400)
 
-        logger.info(f"Processing YouTube URL: {url}")
-        logger.info(f"Extracted video ID: {video_id}")
+        # Fetch video details
+        title, channel_name, video_type, thumbnails = fetch_youtube_details(video_id)
         
-        try:
-            title, channel_name, video_type, thumbnails = fetch_youtube_details(video_id)
-            logger.info(f"Fetched video details: {title}")
-        except Exception as e:
-            logger.error(f"Error fetching YouTube details: {e}")
-            return JsonResponse({"error": f"Failed to fetch video details: {str(e)}"}, status=500)
-
         if not (title and channel_name and video_type):
             return JsonResponse({"error": "Failed to get video information"}, status=500)
 
-        try:
-            transcript = extract_transcript_details(url)
-            if not transcript:
-                logger.error(f"No transcript available for video {video_id}")
-                return JsonResponse({"error": "No transcript available for this video"}, status=400)
-        except Exception as e:
-            logger.error(f"Error extracting transcript: {e}")
-            return JsonResponse({"error": "Failed to extract transcript"}, status=500)
+        # Use provided transcript or try to fetch from backend
+        if not transcript:
+            try:
+                transcript = extract_transcript_details(url)
+            except Exception as e:
+                logger.error(f"Backend transcript fetch failed: {e}")
 
+        if not transcript:
+            return JsonResponse({"error": "No transcript available"}, status=400)
+
+        # Generate summary and tags
         try:
             summary = generate_summary(transcript)
             tags = generate_tags(transcript)
         except Exception as e:
-            print(f"Error generating summary/tags: {e}")
             return JsonResponse({"error": "Failed to generate summary"}, status=500)
 
         video_data = {

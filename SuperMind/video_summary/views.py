@@ -92,11 +92,16 @@ def fetch_youtube_details(video_id):
 # Function to extract transcript details from YouTube
 def extract_transcript_details(youtube_video_url):
     try:
-        # Improved URL parsing
+        # Simplified URL parsing for all formats
         if 'youtu.be' in youtube_video_url:
             video_id = youtube_video_url.split('/')[-1].split('?')[0]
-        else:
+        elif '/shorts/' in youtube_video_url:
+            video_id = youtube_video_url.split('/shorts/')[-1].split('?')[0]
+        elif 'v=' in youtube_video_url:
             video_id = youtube_video_url.split("v=")[1].split("&")[0]
+        else:
+            # For other possible YouTube URL formats
+            video_id = youtube_video_url.split("/")[-1].split("?")[0]
             
         transcript_list = YouTubeTranscriptApi.list_transcripts(video_id)
         
@@ -175,74 +180,68 @@ def generate_keywords_and_summary(request):
             url = data.get('url')
             user_id = data.get('user_id')
             transcript = data.get('transcript')  # Get transcript from frontend
-        else:
-            url = request.GET.get('url')
-            user_id = request.GET.get('user_id')
-            transcript = None
 
-        if not url or not user_id:
-            return JsonResponse({"error": "Missing URL or user_id"}, status=400)
+            if not url or not user_id:
+                return JsonResponse({"error": "Missing URL or user_id"}, status=400)
 
-        # Extract video details
-        try:
-            if 'youtu.be' in url:
-                video_id = url.split('/')[-1].split('?')[0]
-            elif 'youtube.com' in url:
-                if 'v=' in url:
-                    video_id = url.split('v=')[1].split('&')[0]
-                else:
-                    video_id = url.split('/')[-1]
-            else:
-                return JsonResponse({"error": "Invalid YouTube URL format"}, status=400)
-        except Exception as e:
-            return JsonResponse({"error": f"URL parsing failed: {str(e)}"}, status=400)
-
-        # Fetch video details
-        title, channel_name, video_type, thumbnails = fetch_youtube_details(video_id)
-        
-        if not (title and channel_name and video_type):
-            return JsonResponse({"error": "Failed to get video information"}, status=500)
-
-        # Use provided transcript or try to fetch from backend
-        if not transcript:
+            # Extract video details
             try:
-                transcript = extract_transcript_details(url)
+                if 'youtu.be' in url:
+                    video_id = url.split('/')[-1].split('?')[0]
+                elif 'youtube.com' in url:
+                    if 'v=' in url:
+                        video_id = url.split('v=')[1].split('&')[0]
+                    else:
+                        video_id = url.split('/')[-1]
+                else:
+                    return JsonResponse({"error": "Invalid YouTube URL format"}, status=400)
             except Exception as e:
-                logger.error(f"Backend transcript fetch failed: {e}")
+                return JsonResponse({"error": f"URL parsing failed: {str(e)}"}, status=400)
 
-        if not transcript:
-            return JsonResponse({"error": "No transcript available"}, status=400)
+            # Fetch video details
+            title, channel_name, video_type, thumbnail_url = fetch_youtube_details(video_id)
+            
+            if not (title and channel_name and video_type):
+                return JsonResponse({"error": "Failed to get video information"}, status=500)
 
-        # Generate summary and tags
-        try:
-            summary = generate_summary(transcript)
-            tags = generate_tags(transcript)
-        except Exception as e:
-            return JsonResponse({"error": "Failed to generate summary"}, status=500)
+            # Use provided transcript or try to fetch from backend
+            if not transcript:
+                try:
+                    transcript = extract_transcript_details(url)
+                except Exception as e:
+                    logger.error(f"Backend transcript fetch failed: {e}")
+                    return JsonResponse({"error": "No transcript available"}, status=400)
 
-        video_data = {
-            'id': generate_short_id(),
-            'user_id': user_id,
-            'title': title,
-            'channel_name': channel_name,
-            'video_type': video_type,
-            'tags': ", ".join(tags),
-            'summary': summary,
-            'thumbnail_url': thumbnails,
-            'original_url': url,
-            'date_added': datetime.now().isoformat()
-        }
+            # Generate summary and tags
+            try:
+                summary = generate_summary(transcript)
+                tags = generate_tags(transcript)
+            except Exception as e:
+                return JsonResponse({"error": "Failed to generate summary"}, status=500)
 
-        # Save to Supabase
-        try:
-            result = save_to_supabase(video_data)
-            if not result:
-                return JsonResponse({"error": "Failed to save to database"}, status=500)
-        except Exception as e:
-            print(f"Error saving to Supabase: {e}")
-            return JsonResponse({"error": "Failed to save data"}, status=500)
+            content_data = {
+                'id': generate_short_id(),
+                'user_id': user_id,
+                'title': title,
+                'channel_name': channel_name,
+                'video_type': video_type,
+                'tags': ", ".join(tags),
+                'summary': summary,
+                'thumbnail_url': thumbnail_url,
+                'original_url': url,
+                'date_added': datetime.now().isoformat()
+            }
 
-        return JsonResponse(video_data)
+            # Save to Supabase
+            try:
+                result = save_to_supabase(content_data)
+                if not result:
+                    return JsonResponse({"error": "Failed to save to database"}, status=500)
+            except Exception as e:
+                print(f"Error saving to Supabase: {e}")
+                return JsonResponse({"error": "Failed to save data"}, status=500)
+
+            return JsonResponse(content_data)
 
     except Exception as e:
         logger.error(f"Unexpected error: {e}")

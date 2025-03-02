@@ -1,6 +1,7 @@
 import os
 from dotenv import load_dotenv
 import requests
+import re  # Add this import
 import google.generativeai as genai
 from bs4 import BeautifulSoup
 import uuid
@@ -8,6 +9,8 @@ import string
 from urllib.parse import unquote, urlparse
 import csv
 from datetime import datetime
+import json
+from typing import Dict, Optional, List
 
 load_dotenv()
 
@@ -141,3 +144,138 @@ def generate_tags(content):
     except Exception as e:
         print(f"Error generating tags with Gemini: {e}")
         return []
+
+def clean_reddit_text(text: str) -> str:
+    """Clean Reddit markdown and other formatting"""
+    if not text:
+        return ""
+    # Remove markdown links
+    text = re.sub(r'\[([^\]]+)\]\([^\)]+\)', r'\1', text)
+    # Remove markdown formatting
+    text = re.sub(r'[*_~>`]', '', text)
+    return text.strip()
+
+def scrape_reddit_content(url: str) -> Optional[Dict]:
+    try:
+        # First get the JSON data
+        if url.endswith('/'):
+            url = url[:-1]
+        json_url = f"{url}.json"
+        
+        headers = {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+        }
+        
+        # Get both JSON and HTML responses
+        json_response = requests.get(json_url, headers=headers, timeout=10)
+        html_response = requests.get(url, headers=headers, timeout=10)
+        
+        json_response.raise_for_status()
+        html_response.raise_for_status()
+        
+        data = json_response.json()
+        
+        if not isinstance(data, list) or len(data) < 2:
+            return None
+            
+        post_data = data[0]['data']['children'][0]['data']
+        comments_data = data[1]['data']['children']
+        
+        # Parse HTML to get subreddit icon
+        soup = BeautifulSoup(html_response.text, 'html.parser')
+        
+        # Get post content
+        title = post_data.get('title', '')
+        selftext = clean_reddit_text(post_data.get('selftext', ''))
+        subreddit = post_data.get('subreddit', '')
+        author = post_data.get('author', '[deleted]')
+        
+        # Enhanced thumbnail logic
+        thumbnail = ''
+        is_video_post = post_data.get('is_video', False)  # Check if it's a video post
+        
+        # 1. First try url_overridden_by_dest for direct image posts (not videos)
+        if not is_video_post and post_data.get('url_overridden_by_dest'):
+            url_override = post_data['url_overridden_by_dest']
+            if any(url_override.lower().endswith(ext) for ext in ['.jpg', '.jpeg', '.png', '.gif', '.webp']):
+                thumbnail = url_override
+
+        # 2. If it's a video post, skip other image checks and go straight for subreddit icon
+        if is_video_post:
+            subreddit_icon = soup.select_one('.shreddit-subreddit-icon__icon')
+            if subreddit_icon and subreddit_icon.get('src'):
+                thumbnail = subreddit_icon['src']
+            else:
+                # Try alternative selector for community icon
+                community_icon = soup.select_one('img[alt$="icon"]')
+                if community_icon and community_icon.get('src'):
+                    thumbnail = community_icon['src']
+        else:
+            # 3. Try thumbnail field if it's not "default" or "self"
+            if not thumbnail and post_data.get('thumbnail'):
+                if post_data['thumbnail'] not in ['default', 'self', 'nsfw']:
+                    thumbnail = post_data['thumbnail']
+
+            # 4. Try preview images as fallback
+            if not thumbnail and post_data.get('preview', {}).get('images'):
+                preview = post_data['preview']['images'][0]
+                if preview.get('source', {}).get('url'):
+                    thumbnail = preview['source']['url'].replace('&amp;', '&')
+
+            # 5. Try to get subreddit icon as last resort for non-video posts
+            if not thumbnail:
+                subreddit_icon = soup.select_one('.shreddit-subreddit-icon__icon')
+                if subreddit_icon and subreddit_icon.get('src'):
+                    thumbnail = subreddit_icon['src']
+                else:
+                    community_icon = soup.select_one('img[alt$="icon"]')
+                    if community_icon and community_icon.get('src'):
+                        thumbnail = community_icon['src']
+
+        # Clean the thumbnail URL if it exists
+        if thumbnail:
+            # Remove escaped HTML entities and query parameters
+            thumbnail = thumbnail.replace('&amp;', '&').split('?')[0]
+            
+        # Combine content for analysis
+        full_content = f"Title: {title}\n\nPost Content: {selftext}\n\n"
+        if comments_data:
+            top_comments = []
+            comment_count = 0
+            
+            # Loop through comments to get non-stickied ones
+            for comment in comments_data:
+                if comment_count >= 15:  # Increase number of comments to 15
+                    break
+                    
+                comment_data = comment.get('data', {})
+                if (
+                    'body' in comment_data 
+                    and not comment_data.get('stickied', False)  # Skip stickied comments
+                ):
+                    comment_text = clean_reddit_text(comment_data['body'])
+                    if comment_text and len(comment_text) > 20:  # Keep minimum length requirement
+                        top_comments.append(comment_text)
+                        comment_count += 1
+                        
+            if top_comments:
+                full_content += "Top Comments:\n" + "\n".join(f"- {comment}" for comment in top_comments)
+        
+        return {
+            'content': full_content,
+            'title': title,
+            'domain': f"r/{subreddit}",
+            'author': author,
+            'featured_image': thumbnail,
+            'post_type': 'reddit_post'
+        }
+        
+    except requests.exceptions.RequestException as e:
+        print(f"Reddit request error: {e}")
+        return None
+    except json.JSONDecodeError as e:
+        print(f"Reddit JSON error: {e}")
+        return None
+    except Exception as e:
+        print(f"Error scraping Reddit: {e}")
+        return None

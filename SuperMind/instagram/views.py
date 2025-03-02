@@ -6,13 +6,13 @@ from django.views.decorators.csrf import csrf_exempt
 def instagram_analysis_view(request):
     try:
         url = request.GET.get('url')
+        user_id = request.GET.get('user_id')  # Get user_id from query parameters
+        
         if not url:
             return JsonResponse({"error": "No URL provided."}, status=400)
-
-        # Add user_id to the context
-        user_id = getattr(request, 'user_id', None)
+            
         if not user_id:
-            return JsonResponse({"error": "User ID not found."}, status=401)
+            return JsonResponse({"error": "User ID required."}, status=400)
 
         result = download_instagram_post(url, user_id)
         return JsonResponse(result)

@@ -60,6 +60,7 @@ CSRF_TRUSTED_ORIGINS = [
     'http://192.168.0.104:8000',
     'http://192.168.0.104:8081',
     "exp://localhost:19000",  # Expo development
+    "chrome-extension://hcpbkdfipfblmfjeloalfconfjkkhipo"  # Add your extension ID
 ]
 
 # Application definition
@@ -110,6 +111,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://tragic-christal-supermind-b64b5075.koyeb.app",
     "https://supermind-9fii.onrender.com",
     "exp://localhost:19000",  # Expo development
+    "chrome-extension://hcpbkdfipfblmfjeloalfconfjkkhipo"  # Add your extension ID
 ]
 
 CORS_ALLOW_HEADERS = [

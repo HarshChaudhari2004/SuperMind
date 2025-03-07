@@ -156,24 +156,81 @@ def clean_reddit_text(text: str) -> str:
     return text.strip()
 
 def scrape_reddit_content(url: str) -> Optional[Dict]:
+    """Scrape Reddit content from either frontend data or backend scraping"""
+    # If frontend data is passed as a dict, use it directly
+    if isinstance(url, dict):
+        required_fields = ['content', 'title', 'domain', 'author', 'featured_image', 'post_type']
+        if all(field in url for field in required_fields):
+            return url
+        else:
+            print("Missing required fields in frontend data")
+            return None
+
+    # Handle short Reddit URLs (/r/subreddit/s/shortcode)
+    if '/s/' in url:
+        print(f"Detected Reddit short URL format: {url}")
+        try:
+            # First try to resolve the short URL to get the full URL
+            headers = {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
+            }
+            response = requests.get(url, headers=headers, timeout=10, allow_redirects=True)
+            response.raise_for_status()
+            
+            # Get the final URL after redirects
+            resolved_url = response.url
+            print(f"Short URL resolved to: {resolved_url}")
+            
+            # If we got redirected to a comments page, use that URL instead
+            if '/comments/' in resolved_url:
+                url = resolved_url
+                print(f"Using resolved URL for scraping: {url}")
+            else:
+                # If we can't resolve to a comments URL, extract post info from the page
+                soup = BeautifulSoup(response.text, 'html.parser')
+                # Try to find a link to the full comments page
+                comments_link = soup.select_one('a[data-testid="post-title"]')
+                if comments_link and comments_link.get('href'):
+                    post_path = comments_link.get('href')
+                    if post_path.startswith('/'):
+                        url = f"https://www.reddit.com{post_path}"
+                        print(f"Found comments link: {url}")
+                    else:
+                        url = post_path
+                        print(f"Found external link: {url}")
+        except Exception as e:
+            print(f"Error resolving short Reddit URL: {e}")
+            # Continue with the original URL as fallback
+    
+    # Enhanced URL cleaning logic before fetching JSON
     try:
-        # First get the JSON data
-        if url.endswith('/'):
-            url = url[:-1]
-        json_url = f"{url}.json"
+        # Remove query parameters and trailing slash
+        parsed_url = urlparse(url)
+        base_path = parsed_url.path.rstrip('/')  # Remove trailing slash
+        clean_url = f"https://www.reddit.com{base_path}"  # Use only the path
+        json_url = f"{clean_url}.json"
+        
+        print(f"Cleaned URL: {clean_url}")
+        print(f"Fetching Reddit JSON from: {json_url}")
         
         headers = {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         }
         
-        # Get both JSON and HTML responses
+        # Get both JSON and HTML responses using original URL for HTML
         json_response = requests.get(json_url, headers=headers, timeout=10)
-        html_response = requests.get(url, headers=headers, timeout=10)
+        html_response = requests.get(url, headers=headers, timeout=10)  # Keep original URL for HTML
         
         json_response.raise_for_status()
         html_response.raise_for_status()
         
-        data = json_response.json()
+        # Check if we got valid JSON data
+        try:
+            data = json_response.json()
+        except json.JSONDecodeError as e:
+            print(f"Invalid JSON from Reddit: {str(e)}")
+            print(f"First 100 characters of response: {json_response.text[:100]}")
+            return None
         
         if not isinstance(data, list) or len(data) < 2:
             return None

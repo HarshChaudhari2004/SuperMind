@@ -42,6 +42,7 @@ ALLOWED_HOSTS = [
     '127.0.0.1', 
     'localhost', 
     '192.168.0.104',
+    'crazymind-production.up.railway.app',
     'supermind-djb0e9fsfhaabbcx.westindia-01.azurewebsites.net',
     'tragic-christal-supermind-b64b5075.koyeb.app',
     'supermind-9fii.onrender.com'  # Remove https:// prefix
@@ -52,6 +53,7 @@ if RENDER_EXTERNAL_HOSTNAME:
     ALLOWED_HOSTS.append(RENDER_EXTERNAL_HOSTNAME)
 
 CSRF_TRUSTED_ORIGINS = [
+    'https://crazymind-production.up.railway.app',
     'https://supermind-9fii.onrender.com',
     'http://supermind-djb0e9fsfhaabbcx.westindia-01.azurewebsites.net',
     'http://tragic-christal-supermind-b64b5075.koyeb.app',
@@ -107,6 +109,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://192.168.0.104:8000",
     "http://192.168.0.104:8081",
     "http://192.168.0.104",
+    "https://crazymind-production.up.railway.app",
     "http://supermind-djb0e9fsfhaabbcx.westindia-01.azurewebsites.net",
     "http://tragic-christal-supermind-b64b5075.koyeb.app",
     "https://supermind-9fii.onrender.com",

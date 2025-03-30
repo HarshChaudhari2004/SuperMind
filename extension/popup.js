@@ -62,7 +62,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       sessionData: {
         access_token: session.access_token,
         refresh_token: session.refresh_token,
-        expires_at: session.expires_at
+        expires_at: session.expires_at,
+        user_id: session.user.id
       }
     });
     checkAuth();

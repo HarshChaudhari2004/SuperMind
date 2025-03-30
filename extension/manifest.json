@@ -1,12 +1,13 @@
 {
   "manifest_version": 3,
   "name": "SuperMind",
-  "description": "Send current tab URL to SuperMind backend for processing",
   "version": "1.0",
+  "description": "Save and organize your favorite content with SuperMind",
   "permissions": [
     "activeTab",
-    "tabs",
-    "storage"
+    "storage",
+    "contextMenus",
+    "notifications"
   ],
   "host_permissions": [
     "http://127.0.0.1:8000/*",
@@ -14,14 +15,22 @@
     "https://*.supabase.co/*",
     "https://crazymind-production.up.railway.app/"
   ],
-  "content_security_policy": {
-    "extension_pages": "script-src 'self'; object-src 'self'"
-  },
   "action": {
-    "default_icon": "icon.png",
-    "default_popup": "popup.html"
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icon.png",
+      "32": "icon.png",
+      "48": "icon.png", 
+      "128": "icon.png"
+    }
   },
   "background": {
     "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "icon.png",
+    "32": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
   }
 }

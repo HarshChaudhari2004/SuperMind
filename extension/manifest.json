@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "SuperMind",
+  "description": "Send current tab URL to SuperMind backend for processing",
+  "version": "1.0",
+  "permissions": [
+    "activeTab",
+    "tabs",
+    "storage"
+  ],
+  "host_permissions": [
+    "http://127.0.0.1:8000/*",
+    "http://192.168.0.104:8000/*",
+    "https://*.supabase.co/*",
+    "https://crazymind-production.up.railway.app/"
+  ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  },
+  "action": {
+    "default_icon": "icon.png",
+    "default_popup": "popup.html"
+  },
+  "background": {
+    "service_worker": "background.js"
+  }
+}

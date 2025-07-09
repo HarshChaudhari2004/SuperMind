@@ -41,7 +41,8 @@ DEBUG = os.getenv('DEBUG', 'False') == 'True'
 ALLOWED_HOSTS = [
     '127.0.0.1', 
     'localhost', 
-    '192.168.0.104',
+    '192.168.0.111',
+    '0.0.0.0',  # Add this for development
     'crazymind-production.up.railway.app',
     'supermind-djb0e9fsfhaabbcx.westindia-01.azurewebsites.net',
     'tragic-christal-supermind-b64b5075.koyeb.app',
@@ -58,9 +59,11 @@ CSRF_TRUSTED_ORIGINS = [
     'http://supermind-djb0e9fsfhaabbcx.westindia-01.azurewebsites.net',
     'http://tragic-christal-supermind-b64b5075.koyeb.app',
     'http://localhost:8081',
+    'http://localhost:8000',  # Add this for ADB port forwarding
+    'http://localhost',       # Add this for ADB reverse without port
     'http://127.0.0.1:8000',
-    'http://192.168.0.104:8000',
-    'http://192.168.0.104:8081',
+    'http://192.168.0.111:8000',
+    'http://192.168.0.111:8081',
     "exp://localhost:19000",  # Expo development
     "chrome-extension://hcpbkdfipfblmfjeloalfconfjkkhipo"  # Add your extension ID
 ]
@@ -106,9 +109,12 @@ MIDDLEWARE = [
 # Update CORS settings
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:8081",
-    "http://192.168.0.104:8000",
-    "http://192.168.0.104:8081",
-    "http://192.168.0.104",
+    "http://localhost:8000",  # Add this for ADB port forwarding
+    "http://localhost",       # Add this for ADB reverse without port
+    "http://192.168.0.111:8000",
+    "http://192.168.0.111:8081",
+    "http://192.168.0.111",
+    "http://10.0.2.2:8000",  # Android emulator
     "https://crazymind-production.up.railway.app",
     "http://supermind-djb0e9fsfhaabbcx.westindia-01.azurewebsites.net",
     "http://tragic-christal-supermind-b64b5075.koyeb.app",

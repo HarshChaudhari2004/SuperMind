@@ -212,7 +212,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       // Try to get CSRF token first
       try {
-        const csrfResponse = await fetch(`https://crazymind-production.up.railway.app/get-csrf-token/`, {
+        const csrfResponse = await fetch(`https://crazymind.up.railway.app/web/get-csrf-token/`, {
           method: 'GET',
           headers: {
             'Authorization': `Bearer ${session.access_token}`,
@@ -231,7 +231,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
       updateProgress(80, '\u{2699} Processing response...');
 
-      const response = await fetch(`https://crazymind-production.up.railway.app${endpoint}`, {
+      const response = await fetch(`https://crazymind.up.railway.app${endpoint}`, {
         method,
         ...requestConfig
       });

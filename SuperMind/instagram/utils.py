@@ -92,7 +92,7 @@ def analyze_video_with_ai(shortcode, post, user_id):
 
     video_summary_prompt = '''Summarize this video content, and get the context of the video in a few lines. Write all of it in a few lines. 
     don't say anything in start of response like "Sure, here is the summary of the video content:" or at the end of response just write the summary and nothing else.'''
-    model = genai.GenerativeModel(model_name="gemini-1.5-pro")
+    model = genai.GenerativeModel(model_name="gemini-2.5-flash")
 
     response_summary = model.generate_content([video_file, video_summary_prompt], request_options={"timeout": 600})
     summary_text = response_summary.text
@@ -159,7 +159,7 @@ def process_image_content(post, user_id):
     images = []
     try:
         # Initialize Gemini
-        model = genai.GenerativeModel(model_name="gemini-1.5-flash")
+        model = genai.GenerativeModel(model_name="gemini-2.5-flash")
         
         # Handle carousel posts
         if post.mediacount > 1:

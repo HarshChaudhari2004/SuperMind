@@ -15,6 +15,20 @@ class SupabaseAuthMiddleware(MiddlewareMixin):
         if request.method == 'OPTIONS':
             return None
             
+        # Allow access to these endpoints without authentication
+        exempt_paths = [
+            '/get-csrf-token/',
+            '/web/get-csrf-token/',
+            '/api/test/',
+            '/admin/',
+            '/',  # Home page
+        ]
+        
+        # Check if current path is exempt
+        for path in exempt_paths:
+            if request.path.startswith(path):
+                return None
+                
         auth_header = request.headers.get("Authorization")
         
         if auth_header and auth_header.startswith("Bearer "):

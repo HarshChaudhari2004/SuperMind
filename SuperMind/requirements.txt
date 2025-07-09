@@ -1,8 +1,9 @@
 Django
 requests
 google-generativeai
-youtube-transcript-api
-instaloader
+google-genai==1.19.0
+youtube-transcript-api==1.1.1
+instaloader==4.14
 pandas
 beautifulsoup4
 python-dotenv
